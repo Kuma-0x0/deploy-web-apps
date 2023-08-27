@@ -1,0 +1,19 @@
+name: Build
+
+description: "Build Web Apps project."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup .NET SDK 6 LTS
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: "6.x"
+
+    - name: Build
+      shell: pwsh
+      run: dotnet build -c Release
+
+    - name: Test
+      shell: pwsh
+      run: dotnet test --logger 'console;verbosity=detailed'
