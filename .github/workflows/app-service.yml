@@ -1,0 +1,72 @@
+name: Build and deploy to App Service
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_RESOURCE_PATH: "./backend"
+  ARTIFACT_NAME: "web-app"
+  ARTIFACT_UPLOAD_PATH: ./output'
+
+jobs:
+  build:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET SDK 6 LTS
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "6.x"
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Test
+        run: dotnet test --logger 'console;verbosity=detailed'
+
+      - name: Publish
+        # if: github.event.pull_request.merged == true
+        run: dotnet publish -c Release -o ${{env.ARTIFACT_UPLOAD_PATH}}
+
+      - name: Upload artifact
+        # if: github.event.pull_request.merged == true
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{env.ARTIFACT_NAME}}
+          path: ${{env.ARTIFACT_UPLOAD_PATH}}
+
+  deploy:
+    # if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{env.ARTIFACT_NAME}}
+      - name: Login in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy
+        if: success()
+        uses: azure/webapps-deploy@v2
+        id: fa
+        with:
+          app-name: ${{vars.APP_SERVICE_NAME}}
+          package: ${{env.ARTIFACT_UPLOAD_PATH}}
