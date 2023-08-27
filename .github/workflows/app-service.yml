@@ -9,9 +9,8 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_RESOURCE_PATH: "./backend"
   ARTIFACT_NAME: "web-app"
-  ARTIFACT_UPLOAD_PATH: ./output'
+  ARTIFACT_UPLOAD_PATH: "./output"
 
 jobs:
   build:
