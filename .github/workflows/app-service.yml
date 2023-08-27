@@ -68,4 +68,4 @@ jobs:
         id: fa
         with:
           app-name: ${{vars.APP_SERVICE_NAME}}
-          package: ${{env.ARTIFACT_UPLOAD_PATH}}
+          package: "."
