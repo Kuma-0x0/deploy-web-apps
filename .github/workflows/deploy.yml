@@ -7,31 +7,21 @@ on:
 
 env:
   ARTIFACT_NAME: "web-app"
+  ARTIFACT_UPLOAD_PATH: "./output"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/build
-      #   - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      #   - name: Setup .NET SDK 6 LTS
-      #     uses: actions/setup-dotnet@v3
-      #     with:
-      #       dotnet-version: "6.x"
-
-      #   - name: Build
-      #     run: dotnet build -c Release
-
-      #   - name: Test
-      #     run: dotnet test --logger 'console;verbosity=detailed'
+      - name: Build and unit test
+        uses: ./.github/actions/build
 
       - name: Publish
-        if: github.event.pull_request.merged == true
         run: dotnet publish -c Release -o ${{env.ARTIFACT_UPLOAD_PATH}}
 
       - name: Upload artifact
-        if: github.event.pull_request.merged == true
         uses: actions/upload-artifact@v3
         with:
           name: ${{env.ARTIFACT_NAME}}
@@ -51,12 +41,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{env.ARTIFACT_NAME}}
+
       - name: Login in to Azure
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy
         if: success()
         uses: azure/webapps-deploy@v2

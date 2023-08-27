@@ -3,7 +3,7 @@ namespace UnitTest
     [TestClass]
     public class UnitTest1
     {
-        [TestMethod("ƒeƒXƒg1")]
+        [TestMethod("ãƒ†ã‚¹ãƒˆ1")]
         public void TestMethod1()
         {
         }
